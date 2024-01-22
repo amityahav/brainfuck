@@ -50,7 +50,7 @@ func (p *Parser) Parse(tokens []Token) []Operator {
 			operators[pos].Operand = len(operators)
 			op.Operand = pos
 		default:
-			// should not happen
+			log.Printf("unexpected operator encounterd: %s", string(token.Kind()))
 			continue
 		}
 

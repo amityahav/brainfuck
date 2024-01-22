@@ -1,8 +1,15 @@
 package main
 
+import (
+	"fmt"
+	"log"
+)
+
 type Interpreter struct {
 	memory []byte
-	ip     int
+	head   int
+
+	pc int
 
 	tokenize func([]byte) []Token
 	parse    func([]Token) []Operator
@@ -39,8 +46,49 @@ func (i *Interpreter) Interpret(content []byte) {
 	// parse tokens to intermediate representations
 	ops := i.parse(tokens)
 
-	// execute operations one-by-one
-	for _, op := range ops {
-		// TODO
+	// execute operations
+	for i.pc < len(ops) {
+		op := ops[i.pc]
+
+		switch op.kind {
+		case OpPlus:
+			// handle overflows
+			i.memory[i.head] += byte(op.Operand)
+			i.pc++
+		case OpMinus:
+			// handle underflow
+			i.memory[i.head] -= byte(op.Operand)
+			i.pc++
+		case OpRightArrow:
+			// handle out of bounds
+			i.head += op.Operand
+			i.pc++
+		case OpLeftArrow:
+			// handle out of bounds
+			i.head -= op.Operand
+			i.pc++
+		case OpRightBracket:
+			if i.memory[i.head] != 0 {
+				i.pc = op.Operand
+				continue
+			}
+
+			i.pc++
+		case OpLeftBracket:
+			if i.memory[i.head] == 0 {
+				i.pc = op.Operand
+				continue
+			}
+
+			i.pc++
+		case OpDot:
+			fmt.Print(i.memory[i.head])
+			i.pc++
+		case OpComma:
+			i.pc++
+		default:
+			log.Printf("unexpected operator encounterd: %s", string(op.kind))
+			continue
+		}
 	}
 }
