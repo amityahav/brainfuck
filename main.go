@@ -1,23 +1,28 @@
 package main
 
 import (
+	"bf/interpreter"
 	"log"
 	"os"
 )
 
 func main() {
-	bfile := os.Args[1]
-
-	content, err := os.ReadFile(bfile)
-	if err != nil {
-		log.Fatal(err)
+	if len(os.Args) < 3 {
+		log.Fatal("not enough arguments")
 	}
 
-	interpreter := NewInterpreter(
-		Tokenzier{}.Tokenize,
-		Parser{}.Parse,
-		WithMemory(8192),
-	)
+	mode := os.Args[1]
+	bfile := os.Args[2]
 
-	interpreter.Interpret(content)
+	switch mode {
+	case "interpret":
+		i := interpreter.NewInterpreter(
+			interpreter.WithMemory(8192),
+		)
+
+		i.Interpret(bfile)
+	case "compile":
+		// TODO
+	}
+
 }

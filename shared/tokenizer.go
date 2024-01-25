@@ -1,4 +1,4 @@
-package main
+package shared
 
 type Token string
 
@@ -19,9 +19,9 @@ func (tk Token) Kind() OpKind {
 	return OpKind(tk[0])
 }
 
-type Tokenzier struct{}
+type Tokenizer struct{}
 
-func (t *Tokenzier) Tokenize(content []byte) []Token {
+func (t *Tokenizer) Tokenize(content []byte) []Token {
 	var tokens []Token
 
 	currToken := nullToken()

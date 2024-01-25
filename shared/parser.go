@@ -1,4 +1,4 @@
-package main
+package shared
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 )
 
 type Operator struct {
-	kind    OpKind
+	Kind    OpKind
 	Operand int
 }
 
@@ -18,7 +18,7 @@ type Parser struct {
 }
 
 func (p *Parser) Parse(tokens []Token) []Operator {
-	operators := make([]Operator, len(tokens))
+	operators := make([]Operator, 0, len(tokens))
 
 	for _, token := range tokens {
 		var op Operator
@@ -26,24 +26,24 @@ func (p *Parser) Parse(tokens []Token) []Operator {
 		switch token.Kind() {
 		case OpPlus, OpMinus, OpLeftArrow, OpRightArrow, OpDot, OpComma:
 			op = Operator{
-				kind:    token.Kind(),
+				Kind:    token.Kind(),
 				Operand: len(token),
 			}
 		case OpLeftBracket:
 			op = Operator{
-				kind:    token.Kind(),
+				Kind:    token.Kind(),
 				Operand: placeHolder,
 			}
 
 			p.stack.Push(len(operators))
 		case OpRightBracket:
 			op = Operator{
-				kind:    token.Kind(),
+				Kind:    token.Kind(),
 				Operand: placeHolder,
 			}
 
 			pos, ok := p.stack.Pop()
-			if !ok || operators[pos].kind != OpLeftBracket {
+			if !ok || operators[pos].Kind != OpLeftBracket {
 				log.Fatal("parser: unbalanced brackets")
 			}
 
