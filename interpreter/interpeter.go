@@ -41,16 +41,20 @@ func NewInterpreter(options ...Option) *Interpreter {
 }
 
 func (i *Interpreter) Interpret(file string) {
+	if filepath.Ext(file) != ".bf" {
+		log.Fatal("expecting .bf files only")
+	}
+
 	content, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if filepath.Ext(file) != ".bf" {
-		log.Fatal("expecting .bf files only")
-	}
-
-	i.Execute(i.Parse(i.Tokenize(content)))
+	i.Execute(
+		i.Parse(
+			i.Tokenize(content),
+		),
+	)
 }
 
 func (i *Interpreter) Execute(ops []shared.Operator) {

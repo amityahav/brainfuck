@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bf/compiler"
 	"bf/interpreter"
 	"log"
 	"os"
@@ -22,7 +23,11 @@ func main() {
 
 		i.Interpret(bfile)
 	case "compile":
-		// TODO
+		c := compiler.NewCompiler(
+			compiler.WithMemory(8192),
+		)
+
+		c.JitCompile(bfile)
 	}
 
 }
