@@ -26,7 +26,7 @@ func NewCompiler(options ...Option) *Compiler {
 	c := Compiler{
 		Tokenizer: &shared.Tokenizer{},
 		Parser:    &shared.Parser{},
-		memory:    make([]byte, 1026), // default size
+		memory:    make([]byte, 1024), // default size
 	}
 
 	for _, opt := range options {
@@ -46,18 +46,20 @@ func (c *Compiler) JitCompile(file string) {
 		log.Fatal(err)
 	}
 
-	c.Compile(
-		c.Parse(
-			c.Tokenize(content),
+	c.Execute(
+		c.Compile(
+			c.Parse(
+				c.Tokenize(content),
+			),
 		),
 	)
 
 }
 
-func (c *Compiler) Compile(ops []shared.Operator) {
-
+func (c *Compiler) Compile(ops []shared.Operator) func(memory []byte) {
+	return nil
 }
 
-func (c *Compiler) Execute() {
-
+func (c *Compiler) Execute(code func(memory []byte)) {
+	code(c.memory)
 }
