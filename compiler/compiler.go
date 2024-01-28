@@ -56,10 +56,28 @@ func (c *Compiler) JitCompile(file string) {
 
 }
 
-func (c *Compiler) Compile(ops []shared.Operator) func(memory []byte) {
+func (c *Compiler) Compile(ops []shared.Operator) []byte {
+	var code []byte
+
+	for _, op := range ops {
+		switch op.Kind {
+		case shared.OpPlus:
+		case shared.OpMinus:
+		case shared.OpLeftArrow:
+		case shared.OpRightArrow:
+		case shared.OpLeftBracket:
+		case shared.OpRightBracket:
+		case shared.OpDot:
+		case shared.OpComma:
+		default:
+			log.Printf("unexpected operator encounterd: %c", op.Kind)
+			continue
+		}
+	}
+
 	return nil
 }
 
-func (c *Compiler) Execute(code func(memory []byte)) {
-	code(c.memory)
+func (c *Compiler) Execute(code []byte) {
+	//code(c.memory)
 }

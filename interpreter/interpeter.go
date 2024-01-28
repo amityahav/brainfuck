@@ -98,7 +98,7 @@ func (i *Interpreter) Execute(ops []shared.Operator) {
 		case shared.OpComma: // TODO
 			i.pc++
 		default:
-			log.Printf("unexpected operator encounterd: %s", string(op.Kind))
+			log.Printf("unexpected operator encounterd: %c", op.Kind)
 			continue
 		}
 	}
