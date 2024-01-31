@@ -1,17 +1,19 @@
 package compiler
 
+import "C"
 import (
 	"bf/shared"
 	"log"
 	"os"
 	"path/filepath"
+	"unsafe"
 )
 
 type Option func(c *Compiler)
 
 func WithMemory(size int) Option {
 	return func(c *Compiler) {
-		c.memory = make([]byte, size)
+		c.memory = size
 	}
 }
 
@@ -19,14 +21,14 @@ type Compiler struct {
 	*shared.Tokenizer
 	*shared.Parser
 
-	memory []byte
+	memory int
 }
 
 func NewCompiler(options ...Option) *Compiler {
 	c := Compiler{
 		Tokenizer: &shared.Tokenizer{},
 		Parser:    &shared.Parser{},
-		memory:    make([]byte, 1024), // default size
+		memory:    1024, // default size
 	}
 
 	for _, opt := range options {
@@ -57,7 +59,7 @@ func (c *Compiler) JitCompile(file string) {
 }
 
 func (c *Compiler) Compile(ops []shared.Operator) []byte {
-	var code []byte
+	//var code []byte
 
 	for _, op := range ops {
 		switch op.Kind {
@@ -78,6 +80,16 @@ func (c *Compiler) Compile(ops []shared.Operator) []byte {
 	return nil
 }
 
-func (c *Compiler) Execute(code []byte) {
-	//code(c.memory)
+func (c *Compiler) Execute(instructions []byte) {
+	program := mmap(instructions)
+
+	// allocating memory for the compiled program
+	memory := (*byte)(unsafe.Pointer(C.malloc(C.size_t(c.memory))))
+	// TODO: defer freeing allocated memory
+
+	println(*memory)
+	// executing in-memory program
+	program(memory)
+
+	println(*memory)
 }
