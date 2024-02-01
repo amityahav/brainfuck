@@ -6,14 +6,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"unsafe"
 )
 
 type Option func(c *Compiler)
 
 func WithMemory(size int) Option {
 	return func(c *Compiler) {
-		c.memory = size
+		c.memory = make([]byte, size)
 	}
 }
 
@@ -21,14 +20,14 @@ type Compiler struct {
 	*shared.Tokenizer
 	*shared.Parser
 
-	memory int
+	memory []byte
 }
 
 func NewCompiler(options ...Option) *Compiler {
 	c := Compiler{
 		Tokenizer: &shared.Tokenizer{},
 		Parser:    &shared.Parser{},
-		memory:    1024, // default size
+		memory:    make([]byte, 1024), // default size
 	}
 
 	for _, opt := range options {
@@ -83,13 +82,6 @@ func (c *Compiler) Compile(ops []shared.Operator) []byte {
 func (c *Compiler) Execute(instructions []byte) {
 	program := mmap(instructions)
 
-	// allocating memory for the compiled program
-	memory := (*byte)(unsafe.Pointer(C.malloc(C.size_t(c.memory))))
-	// TODO: defer freeing allocated memory
-
-	println(*memory)
 	// executing in-memory program
-	program(memory)
-
-	println(*memory)
+	program(&c.memory[0])
 }
