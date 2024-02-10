@@ -95,8 +95,6 @@ func (i *Interpreter) Execute(ops []shared.Operator) {
 		case shared.OpDot:
 			fmt.Printf("%c", i.memory[i.head])
 			i.pc++
-		case shared.OpComma: // TODO
-			i.pc++
 		default:
 			log.Printf("unexpected operator encounterd: %c", op.Kind)
 			continue
