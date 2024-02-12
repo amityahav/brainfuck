@@ -1,18 +1,15 @@
 package compiler
 
-import "C"
 import (
 	"bf/shared"
 	"log"
-	"os"
-	"path/filepath"
 )
 
 type Option func(c *Compiler)
 
 func WithMemory(size int) Option {
 	return func(c *Compiler) {
-		c.memory = make([]byte, size)
+		c.memory = size
 	}
 }
 
@@ -20,14 +17,14 @@ type Compiler struct {
 	*shared.Tokenizer
 	*shared.Parser
 
-	memory []byte
+	memory int
 }
 
 func NewCompiler(options ...Option) *Compiler {
 	c := Compiler{
 		Tokenizer: &shared.Tokenizer{},
 		Parser:    &shared.Parser{},
-		memory:    make([]byte, 1024), // default size
+		memory:    1024, // default size
 	}
 
 	for _, opt := range options {
@@ -37,18 +34,9 @@ func NewCompiler(options ...Option) *Compiler {
 	return &c
 }
 
-func (c *Compiler) JitCompile(file string) {
-	if filepath.Ext(file) != ".bf" {
-		log.Fatal("expecting .bf files only")
-	}
-
-	content, err := os.ReadFile(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func (c *Compiler) JitCompile(content []byte) {
 	c.Execute(
-		c.Compile(
+		c.CompileX86(
 			c.Parse(
 				c.Tokenize(content),
 			),
@@ -57,7 +45,8 @@ func (c *Compiler) JitCompile(file string) {
 
 }
 
-func (c *Compiler) Compile(ops []shared.Operator) []byte {
+// CompileX86 compiles to x86-64 machine code
+func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 	var code []byte
 
 	for _, op := range ops {
@@ -88,7 +77,11 @@ func (c *Compiler) Compile(ops []shared.Operator) []byte {
 			// MOV rax, r9           ; restoring rax
 			code = append(code,
 				0x49, 0x89, 0xc1,
-				0x48, 0xC7, 0xC0, 0x04, 0x00, 0x00, 0x02,
+				0x48, 0xC7, 0xC0)
+
+			code = append(code, writeSyscallOpcode...)
+
+			code = append(code,
 				0x48, 0xC7, 0xC7, 0x01, 0x00, 0x00, 0x00,
 				0x4C, 0x89, 0xCE,
 				0x48, 0xc7, 0xc2, 0x01, 0x00, 0x00, 0x00,
@@ -102,12 +95,13 @@ func (c *Compiler) Compile(ops []shared.Operator) []byte {
 
 	code = append(code, 0xC3) // RET
 
-	return nil
+	return code
 }
 
 func (c *Compiler) Execute(instructions []byte) {
 	program := mmap(instructions)
 
+	memory := make([]byte, c.memory)
 	// executing in-memory program
-	program(&c.memory[0])
+	program(&memory[0])
 }

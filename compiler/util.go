@@ -14,6 +14,8 @@ func mmap(instructions []byte) func(pointer *byte) {
 		panic(err)
 	}
 
+	defer os.Remove("tmp")
+
 	_, err = f.Write(instructions)
 	if err != nil {
 		panic(err)

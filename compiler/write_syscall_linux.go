@@ -1,0 +1,3 @@
+package compiler
+
+var writeSyscallOpcode = []byte{0x01, 0x00, 0x00, 0x00}

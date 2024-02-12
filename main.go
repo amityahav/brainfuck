@@ -3,6 +3,7 @@ package main
 import (
 	"bf/compiler"
 	"bf/interpreter"
+	"bf/shared"
 	"log"
 	"os"
 )
@@ -15,19 +16,28 @@ func main() {
 	mode := os.Args[1]
 	bfile := os.Args[2]
 
+	if !shared.IsBrainfuckFile(bfile) {
+		log.Fatal("expecting .bf files only")
+	}
+
+	content, err := os.ReadFile(bfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	switch mode {
 	case "interpret":
 		i := interpreter.NewInterpreter(
 			interpreter.WithMemory(8192),
 		)
 
-		i.Interpret(bfile)
+		i.Interpret(content)
 	case "compile":
 		c := compiler.NewCompiler(
 			compiler.WithMemory(8192),
 		)
 
-		c.JitCompile(bfile)
+		c.JitCompile(content)
 	}
 
 }

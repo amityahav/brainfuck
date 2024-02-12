@@ -4,15 +4,13 @@ import (
 	"bf/shared"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 )
 
 type Option func(i *Interpreter)
 
 func WithMemory(size int) Option {
 	return func(i *Interpreter) {
-		i.memory = make([]byte, size)
+		i.memory = size
 	}
 }
 
@@ -20,17 +18,14 @@ type Interpreter struct {
 	*shared.Tokenizer
 	*shared.Parser
 
-	memory []byte
-	head   int
-
-	pc int
+	memory int
 }
 
 func NewInterpreter(options ...Option) *Interpreter {
 	i := Interpreter{
 		Tokenizer: &shared.Tokenizer{},
 		Parser:    &shared.Parser{},
-		memory:    make([]byte, 1024), // default size
+		memory:    1024, // default size
 	}
 
 	for _, opt := range options {
@@ -40,16 +35,7 @@ func NewInterpreter(options ...Option) *Interpreter {
 	return &i
 }
 
-func (i *Interpreter) Interpret(file string) {
-	if filepath.Ext(file) != ".bf" {
-		log.Fatal("expecting .bf files only")
-	}
-
-	content, err := os.ReadFile(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func (i *Interpreter) Interpret(content []byte) {
 	i.Execute(
 		i.Parse(
 			i.Tokenize(content),
@@ -58,43 +44,50 @@ func (i *Interpreter) Interpret(file string) {
 }
 
 func (i *Interpreter) Execute(ops []shared.Operator) {
-	for i.pc < len(ops) {
-		if i.head < 0 || i.head >= len(i.memory) {
+	var (
+		head int
+		pc   int
+	)
+
+	memory := make([]byte, i.memory)
+
+	for pc < len(ops) {
+		if head < 0 || head >= i.memory {
 			log.Fatal("head points to invalid memory address")
 		}
 
-		op := ops[i.pc]
+		op := ops[pc]
 
 		switch op.Kind {
 		case shared.OpPlus:
-			i.memory[i.head] += byte(op.Operand)
-			i.pc++
+			memory[head] += byte(op.Operand)
+			pc++
 		case shared.OpMinus:
-			i.memory[i.head] -= byte(op.Operand)
-			i.pc++
+			memory[head] -= byte(op.Operand)
+			pc++
 		case shared.OpRightArrow:
-			i.head += op.Operand
-			i.pc++
+			head += op.Operand
+			pc++
 		case shared.OpLeftArrow:
-			i.head -= op.Operand
-			i.pc++
+			head -= op.Operand
+			pc++
 		case shared.OpRightBracket:
-			if i.memory[i.head] != 0 {
-				i.pc = op.Operand
+			if memory[head] != 0 {
+				pc = op.Operand
 				continue
 			}
 
-			i.pc++
+			pc++
 		case shared.OpLeftBracket:
-			if i.memory[i.head] == 0 {
-				i.pc = op.Operand
+			if memory[head] == 0 {
+				pc = op.Operand
 				continue
 			}
 
-			i.pc++
+			pc++
 		case shared.OpDot:
-			fmt.Printf("%c", i.memory[i.head])
-			i.pc++
+			fmt.Printf("%c", memory[head])
+			pc++
 		default:
 			log.Printf("unexpected operator encounterd: %c", op.Kind)
 			continue

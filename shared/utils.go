@@ -1,5 +1,9 @@
 package shared
 
+import (
+	"path/filepath"
+)
+
 type Stack []int
 
 func (s *Stack) Push(elem int) {
@@ -19,4 +23,8 @@ func (s *Stack) Pop() (int, bool) {
 
 func (s *Stack) Size() int {
 	return len(*s)
+}
+
+func IsBrainfuckFile(name string) bool {
+	return filepath.Ext(name) == fileExt
 }
