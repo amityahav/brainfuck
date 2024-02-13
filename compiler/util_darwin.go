@@ -6,6 +6,8 @@ import (
 	"unsafe"
 )
 
+var writeSyscallOpcode = []byte{0x04, 0x00, 0x00, 0x02}
+
 func mmap(instructions []byte) func(pointer *byte) {
 	// Apple disallows mmaping with WRITE and EXEC together for security reasons so as a workaround
 	// im writing the code to a file and then mmap it as executable
