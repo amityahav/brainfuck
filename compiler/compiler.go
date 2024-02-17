@@ -68,7 +68,7 @@ func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 		case shared.OpLeftBracket:
 		case shared.OpRightBracket:
 		case shared.OpDot:
-			// MOV r9, rax 			 ; saving rax because it is needed for system call
+			// MOV r9, rax 			 ; saving rax (memory head) because it is needed for system call
 			// MOV rax,0x2000004	 ; number of write syscall in mac
 			// MOV rdi,0x1			 ; stdout
 			// MOV rsi,r9         	 ; r9's value is the memory head pointer
