@@ -14,7 +14,7 @@ const placeHolder int = math.MaxInt
 
 type Parser struct {
 	// stack is used to validate brackets
-	stack Stack
+	stack Stack[int]
 }
 
 func (p *Parser) Parse(tokens []Token) []Operator {

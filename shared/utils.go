@@ -4,15 +4,17 @@ import (
 	"path/filepath"
 )
 
-type Stack []int
+type Stack[T any] []T
 
-func (s *Stack) Push(elem int) {
+func (s *Stack[T]) Push(elem T) {
 	*s = append(*s, elem)
 }
 
-func (s *Stack) Pop() (int, bool) {
+func (s *Stack[T]) Pop() (T, bool) {
+	var ret T
+
 	if len(*s) == 0 {
-		return 0, false
+		return ret, false
 	}
 
 	val := (*s)[len(*s)-1]
@@ -21,7 +23,7 @@ func (s *Stack) Pop() (int, bool) {
 	return val, true
 }
 
-func (s *Stack) Size() int {
+func (s *Stack[T]) Size() int {
 	return len(*s)
 }
 

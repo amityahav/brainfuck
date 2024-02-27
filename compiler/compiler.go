@@ -5,6 +5,16 @@ import (
 	"log"
 )
 
+// back patching
+type bp struct {
+	// current instruction position
+	cp int32
+	// next instruction position
+	np int32
+	// placeholder position
+	pp int32
+}
+
 type Option func(c *Compiler)
 
 func WithMemory(size int) Option {
@@ -18,6 +28,7 @@ type Compiler struct {
 	*shared.Parser
 
 	memory int
+	stack  shared.Stack[bp]
 }
 
 func NewCompiler(options ...Option) *Compiler {
@@ -47,18 +58,18 @@ func (c *Compiler) JitCompile(content []byte) {
 
 // CompileX86 compiles to x86-64 machine code
 func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
-	var code []byte
+	var (
+		code []byte
+	)
 
 	for _, op := range ops {
 		switch op.Kind {
 		case shared.OpPlus:
-			// NOP
 			// ADD BYTE[rax], operand
-			code = append(code, 0x90, 0x80, 0x00, byte(op.Operand))
+			code = append(code, 0x80, 0x00, byte(op.Operand))
 		case shared.OpMinus:
-			// NOP
 			// SUB BYTE[rax], operand
-			code = append(code, 0x90, 0x80, 0x28, byte(op.Operand))
+			code = append(code, 0x80, 0x28, byte(op.Operand))
 		case shared.OpLeftArrow:
 			// SUB rax, operand
 			code = append(code, 0x48, 0x83, 0xE8, byte(op.Operand))
@@ -66,7 +77,50 @@ func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 			// ADD rax, operand
 			code = append(code, 0x48, 0x83, 0xC0, byte(op.Operand))
 		case shared.OpLeftBracket:
+			backPatch := bp{
+				cp: int32(len(code)),
+			}
+
+			// MOV bl, BYTE PTR[rax]
+			// cmp bl, 0
+			// je <matching right bracket addr>
+			code = append(code,
+				0x8A, 0x18,
+				0x80, 0xFB, 00,
+				0x0F, 0x84)
+
+			backPatch.pp = int32(len(code))
+			// last 4 bytes are placeholders for the addr that will be back patched once we encounter
+			// the matching right bracket
+			code = append(code, 0x00, 0x00, 0x00, 0x00)
+
+			backPatch.np = int32(len(code))
+
+			c.stack.Push(backPatch)
 		case shared.OpRightBracket:
+			backPatch, ok := c.stack.Pop()
+			if !ok {
+				log.Fatal("compiler: unbalanced brackets")
+			}
+
+			// back patch
+			cp := int32(len(code))
+			relative := int32toEndian(cp - backPatch.np)
+			for i := 0; i < 4; i++ {
+				code[int(backPatch.pp)+i] = relative[i]
+			}
+
+			// MOV bl, BYTE PTR[rax]
+			// cmp bl, 0
+			// jne <matching left bracket addr>
+			code = append(code,
+				0x8A, 0x18,
+				0x80, 0xFB, 00,
+				0x0F, 0x85)
+
+			np := int32(len(code) + 4)
+			relative = int32toEndian(backPatch.cp - np)
+			code = append(code, relative...)
 		case shared.OpDot:
 			// MOV r9, rax 			 ; saving rax (memory head) because it is needed for system call
 			// MOV rax,0x2000004	 ; number of write syscall in mac
@@ -94,6 +148,10 @@ func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 	}
 
 	code = append(code, 0xC3) // RET
+
+	//for _, b := range code {
+	//	fmt.Printf("%02x ", b)
+	//}
 
 	return code
 }

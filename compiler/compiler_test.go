@@ -6,7 +6,7 @@ import (
 
 func TestCompiler_JitCompile(t *testing.T) {
 	runWithCompiler(t, func(t *testing.T, compiler *Compiler) {
-		content := []byte("++++++++++++++++++++++++++++++++++++++++++.")
+		content := []byte("++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.")
 		compiler.JitCompile(content)
 	})
 }
