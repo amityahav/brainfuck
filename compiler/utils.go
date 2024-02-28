@@ -1,6 +1,6 @@
 package compiler
 
-func int32toEndian(x int32) []byte {
+func int32toLittleEndian(x int32) []byte {
 	var b [4]byte
 
 	b[0] = byte(x)

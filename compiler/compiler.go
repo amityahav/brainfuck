@@ -105,7 +105,7 @@ func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 
 			// back patch
 			cp := int32(len(code))
-			relative := int32toEndian(cp - backPatch.np)
+			relative := int32toLittleEndian(cp - backPatch.np)
 			for i := 0; i < 4; i++ {
 				code[int(backPatch.pp)+i] = relative[i]
 			}
@@ -119,7 +119,7 @@ func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 				0x0F, 0x85)
 
 			np := int32(len(code) + 4)
-			relative = int32toEndian(backPatch.cp - np)
+			relative = int32toLittleEndian(backPatch.cp - np)
 			code = append(code, relative...)
 		case shared.OpDot:
 			// MOV r9, rax 			 ; saving rax (memory head) because it is needed for system call
