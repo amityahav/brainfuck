@@ -5,7 +5,7 @@ it was made in order to experiment with building basic compilers/ interpreters a
 messing around with assembly.
 
 NOTE:
-- I did not implement the `, ` instruction of the language for simplicity.
+- I did not implement the `,` instruction of the language for simplicity.
 - Memory assigned to the brainfuck program is 8KB.
 - I did not enforce validations over memory's out of bound access.
 
