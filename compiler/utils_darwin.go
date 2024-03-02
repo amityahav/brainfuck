@@ -1,8 +1,8 @@
 package compiler
 
 import (
-	"golang.org/x/sys/unix"
 	"os"
+	"syscall"
 	"unsafe"
 )
 
@@ -23,7 +23,7 @@ func mmap(instructions []byte) func(pointer *byte) {
 		panic(err)
 	}
 
-	code, err := unix.Mmap(int(f.Fd()), 0, 1024, unix.PROT_EXEC, unix.MAP_PRIVATE)
+	code, err := syscall.Mmap(int(f.Fd()), 0, len(instructions), syscall.PROT_EXEC, syscall.MAP_PRIVATE)
 	if err != nil {
 		panic(err)
 	}
