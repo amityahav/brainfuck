@@ -123,7 +123,7 @@ func (c *Compiler) CompileX86(ops []shared.Operator) []byte {
 			code = append(code, relative...)
 		case shared.OpDot:
 			// MOV r9, rax 			 ; saving rax (memory head) because it is needed for system call
-			// MOV rax,0x2000004	 ; number of write syscall in mac
+			// MOV rax, <write_syscall_opcode>
 			// MOV rdi,0x1			 ; stdout
 			// MOV rsi,r9         	 ; r9's value is the memory head pointer
 			// MOV rdx,0x1	     	 ; count
